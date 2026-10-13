@@ -96,12 +96,14 @@ build machines.
 ## Unmodified Mozilla components
 
 Veld also ships these MPL-2.0 components without modification. Their source is
-available from Mozilla at the same revision:
+available from Mozilla at the revisions listed:
 
 | Component | Version | Source |
 |---|---|---|
 | GeckoView (all files not listed above), including bundled translation models | 157.0.20260924084938 | <https://hg.mozilla.org/releases/mozilla-release/file/8eb25af4acf031ab1e06abf1a912275083c820ed> or the archive above |
-| Mozilla Android Components (`browser-engine-gecko`, `concept-engine`, `browser-state`, `browser-icons`, `feature-readerview` and their dependencies) | 157.0 | Same revision, directory `mobile/android/android-components/`: <https://hg.mozilla.org/releases/mozilla-release/file/8eb25af4acf031ab1e06abf1a912275083c820ed/mobile/android/android-components> |
+| Mozilla Android Components (`browser-engine-gecko`, `concept-engine`, `browser-state`, `browser-icons`, `feature-readerview`, `service-sync-logins`, `concept-storage`, `concept-sync`, `concept-base`, `lib-dataprotect`, `support-base` and their dependencies) | 157.0 | Same revision, directory `mobile/android/android-components/`: <https://hg.mozilla.org/releases/mozilla-release/file/8eb25af4acf031ab1e06abf1a912275083c820ed/mobile/android/android-components> |
+| Mozilla application-services (`logins`, `init_rust_components`, `full-megazord`), used for saved passwords | 157.0.1 | <https://github.com/mozilla/application-services/tree/v157.0.1> (tag `v157.0.1`, commit `b2c6a64e19e793218c255e3c57beb034b761bb8a`) |
+| Mozilla Glean SDK (`glean`), included by application-services and never started by Veld | 68.0.1 | <https://github.com/mozilla/glean/tree/v68.0.1> (tag `v68.0.1`, commit `92ecd18105fd2936e11936da749183369a491580`) |
 | Public Suffix List (inside OkHttp 4.12.0) | as bundled in OkHttp 4.12.0 | <https://github.com/publicsuffix/list> (and the OkHttp 4.12.0 source at <https://github.com/square/okhttp/tree/parent-4.12.0>) |
 
 Maven binaries and `-sources.jar` files for the Mozilla components are also
