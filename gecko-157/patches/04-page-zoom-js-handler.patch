@@ -1,0 +1,72 @@
+--- a/mobile/shared/modules/geckoview/GeckoViewSettings.sys.mjs
++++ b/mobile/shared/modules/geckoview/GeckoViewSettings.sys.mjs
+@@ -26,6 +26,9 @@
+ const VIEWPORT_MODE_MOBILE = 0;
+ const VIEWPORT_MODE_DESKTOP = 1;
+ 
++const PAGE_ZOOM_MIN = 0.30;
++const PAGE_ZOOM_MAX = 5.00;
++
+ // Handles GeckoSession settings.
+ export class GeckoViewSettings extends GeckoViewModule {
+   onInit() {
+@@ -34,7 +37,11 @@
+     this._userAgentOverride = null;
+     this._sessionContextId = null;
+ 
+-    this.registerListener(["GeckoView:GetUserAgent"]);
++    this.registerListener([
++      "GeckoView:GetUserAgent",
++      "GeckoView:SetPageZoom",
++      "GeckoView:GetPageZoom",
++    ]);
+   }
+ 
+   onEvent(aEvent, aData, aCallback) {
+@@ -43,6 +50,46 @@
+     switch (aEvent) {
+       case "GeckoView:GetUserAgent": {
+         aCallback.onSuccess(this.customUserAgent ?? this.getMobileUserAgent());
++        break;
++      }
++
++      case "GeckoView:SetPageZoom": {
++        const zoom = Number(aData?.zoom);
++        if (!Number.isFinite(zoom) || zoom < PAGE_ZOOM_MIN || zoom > PAGE_ZOOM_MAX) {
++          aCallback.onError("Page zoom must be finite and between 0.30 and 5.00");
++          break;
++        }
++
++        const browser = this.browser;
++        const context = browser?.browsingContext?.top;
++        if (!context || context.isDiscarded) {
++          aCallback.onError("Page zoom is unavailable for this session");
++          break;
++        }
++
++        try {
++          browser.fullZoom = zoom;
++          aCallback.onSuccess(String(browser.fullZoom));
++        } catch (error) {
++          aCallback.onError(`Failed to apply page zoom: ${error}`);
++        }
++        break;
++      }
++
++      case "GeckoView:GetPageZoom": {
++        const browser = this.browser;
++        const context = browser?.browsingContext?.top;
++        if (!context || context.isDiscarded) {
++          aCallback.onError("Page zoom is unavailable for this session");
++          break;
++        }
++
++        try {
++          aCallback.onSuccess(String(browser.fullZoom));
++        } catch (error) {
++          aCallback.onError(`Failed to read page zoom: ${error}`);
++        }
++        break;
+       }
+     }
+   }

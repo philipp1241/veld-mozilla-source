@@ -1,0 +1,189 @@
+--- a/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/WebAuthnTokenManager.java
++++ b/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/WebAuthnTokenManager.java
+@@ -55,19 +55,44 @@
+   private static final String LOGTAG = "WebAuthnTokenManager";
+   private static final boolean DEBUG = false;
+ 
+-  private static final Algorithm[] SUPPORTED_ALGORITHMS = {
+-    EC2Algorithm.ES256,
+-    EC2Algorithm.ES384,
+-    EC2Algorithm.ES512,
+-    EC2Algorithm.ED256, /* no ED384 */
+-    EC2Algorithm.ED512,
+-    RSAAlgorithm.PS256,
+-    RSAAlgorithm.PS384,
+-    RSAAlgorithm.PS512,
+-    RSAAlgorithm.RS256,
+-    RSAAlgorithm.RS384,
+-    RSAAlgorithm.RS512
+-  };
++  private static boolean areGmsClassesAvailable(final String... names) {
++    final ClassLoader loader = WebAuthnTokenManager.class.getClassLoader();
++    for (final String name : names) {
++      try {
++        // Do not initialize optional provider classes while checking their presence.
++        Class.forName(name, false, loader);
++      } catch (final ClassNotFoundException e) {
++        return false;
++      }
++    }
++    // Unclassified linkage, initialization and security failures must remain visible.
++    return true;
++  }
++
++  private static boolean isGmsProviderAvailable() {
++    return areGmsClassesAvailable(
++        "com.google.android.gms.fido.Fido",
++        BuildConfig.MOZILLA_OFFICIAL
++            ? "com.google.android.gms.fido.fido2.Fido2PrivilegedApiClient"
++            : "com.google.android.gms.fido.fido2.Fido2ApiClient",
++        "com.google.android.gms.tasks.Task");
++  }
++
++  private static final class GmsAlgorithms {
++    private static final Algorithm[] SUPPORTED_ALGORITHMS = {
++      EC2Algorithm.ES256,
++      EC2Algorithm.ES384,
++      EC2Algorithm.ES512,
++      EC2Algorithm.ED256, /* no ED384 */
++      EC2Algorithm.ED512,
++      RSAAlgorithm.PS256,
++      RSAAlgorithm.PS384,
++      RSAAlgorithm.PS512,
++      RSAAlgorithm.RS256,
++      RSAAlgorithm.RS384,
++      RSAAlgorithm.RS512
++    };
++  }
+ 
+   private static PublicKeyCredentialCreationOptions getRequestOptionsForMakeCredential(
+       final GeckoBundle credentialBundle,
+@@ -83,7 +108,7 @@
+         new ArrayList<PublicKeyCredentialParameters>();
+ 
+     // WebAuthn supports more algorithms
+-    for (final Algorithm algo : SUPPORTED_ALGORITHMS) {
++    for (final Algorithm algo : GmsAlgorithms.SUPPORTED_ALGORITHMS) {
+       params.add(
+           new PublicKeyCredentialParameters(
+               PublicKeyCredentialType.PUBLIC_KEY.toString(), algo.getAlgoValue()));
+@@ -179,6 +204,38 @@
+       final GeckoBundle extensions) {
+     ThreadUtils.assertOnUiThread();
+ 
++    if (!isGmsProviderAvailable()
++        || !areGmsClassesAvailable(
++            "com.google.android.gms.fido.fido2.api.common.Algorithm",
++            "com.google.android.gms.fido.fido2.api.common.Attachment",
++            "com.google.android.gms.fido.fido2.api.common.AttestationConveyancePreference",
++            "com.google.android.gms.fido.fido2.api.common.AuthenticationExtensions",
++            "com.google.android.gms.fido.fido2.api.common.AuthenticationExtensionsClientOutputs",
++            "com.google.android.gms.fido.fido2.api.common.AuthenticationExtensionsCredPropsOutputs",
++            "com.google.android.gms.fido.fido2.api.common.AuthenticatorAttestationResponse",
++            "com.google.android.gms.fido.fido2.api.common.AuthenticatorErrorResponse",
++            "com.google.android.gms.fido.fido2.api.common.AuthenticatorResponse",
++            "com.google.android.gms.fido.fido2.api.common.AuthenticatorSelectionCriteria",
++            "com.google.android.gms.fido.fido2.api.common.BrowserPublicKeyCredentialCreationOptions",
++            "com.google.android.gms.fido.fido2.api.common.EC2Algorithm",
++            "com.google.android.gms.fido.fido2.api.common.FidoAppIdExtension",
++            "com.google.android.gms.fido.fido2.api.common.PublicKeyCredential",
++            "com.google.android.gms.fido.fido2.api.common.PublicKeyCredentialCreationOptions",
++            "com.google.android.gms.fido.fido2.api.common.PublicKeyCredentialDescriptor",
++            "com.google.android.gms.fido.fido2.api.common.PublicKeyCredentialParameters",
++            "com.google.android.gms.fido.fido2.api.common.PublicKeyCredentialRpEntity",
++            "com.google.android.gms.fido.fido2.api.common.PublicKeyCredentialType",
++            "com.google.android.gms.fido.fido2.api.common.PublicKeyCredentialUserEntity",
++            "com.google.android.gms.fido.fido2.api.common.RSAAlgorithm",
++            "com.google.android.gms.fido.fido2.api.common.ResidentKeyRequirement",
++            "com.google.android.gms.fido.common.Transport",
++            "com.google.android.gms.fido.fido2.api.common.PublicKeyCredentialCreationOptions$Builder",
++            "com.google.android.gms.fido.fido2.api.common.AuthenticatorSelectionCriteria$Builder",
++            "com.google.android.gms.fido.fido2.api.common.AuthenticationExtensions$Builder",
++            "com.google.android.gms.fido.fido2.api.common.BrowserPublicKeyCredentialCreationOptions$Builder")) {
++      return GeckoResult.fromException(new WebAuthnUtils.Exception("NOT_SUPPORTED_ERR"));
++    }
++
+     if (!credentialBundle.containsKey("isWebAuthn")) {
+       // FIDO U2F not supported by Android (for us anyway) at this time
+       return GeckoResult.fromException(new WebAuthnUtils.Exception("NOT_SUPPORTED_ERR"));
+@@ -292,10 +349,7 @@
+             result.completeExceptionally(new WebAuthnUtils.Exception("ABORT_ERR"));
+           });
+     } catch (final java.lang.Exception e) {
+-      // We need to ensure we catch any possible exception here in order to ensure
+-      // that the Promise on the content side is appropriately rejected. In particular,
+-      // we will get `NoClassDefFoundError` if we're running on a device that does not
+-      // have Google Play Services.
++      // Preserve the existing settlement for ordinary provider exceptions.
+       Log.w(LOGTAG, "Couldn't make credential", e);
+       return GeckoResult.fromException(new WebAuthnUtils.Exception("UNKNOWN_ERR"));
+     }
+@@ -421,6 +475,25 @@
+       final GeckoBundle extensions) {
+     ThreadUtils.assertOnUiThread();
+ 
++    if (!isGmsProviderAvailable()
++        || !areGmsClassesAvailable(
++            "com.google.android.gms.fido.fido2.api.common.AuthenticationExtensions",
++            "com.google.android.gms.fido.fido2.api.common.AuthenticatorAssertionResponse",
++            "com.google.android.gms.fido.fido2.api.common.AuthenticatorErrorResponse",
++            "com.google.android.gms.fido.fido2.api.common.AuthenticatorResponse",
++            "com.google.android.gms.fido.fido2.api.common.BrowserPublicKeyCredentialRequestOptions",
++            "com.google.android.gms.fido.fido2.api.common.FidoAppIdExtension",
++            "com.google.android.gms.fido.fido2.api.common.PublicKeyCredential",
++            "com.google.android.gms.fido.fido2.api.common.PublicKeyCredentialDescriptor",
++            "com.google.android.gms.fido.fido2.api.common.PublicKeyCredentialRequestOptions",
++            "com.google.android.gms.fido.fido2.api.common.PublicKeyCredentialType",
++            "com.google.android.gms.fido.common.Transport",
++            "com.google.android.gms.fido.fido2.api.common.AuthenticationExtensions$Builder",
++            "com.google.android.gms.fido.fido2.api.common.PublicKeyCredentialRequestOptions$Builder",
++            "com.google.android.gms.fido.fido2.api.common.BrowserPublicKeyCredentialRequestOptions$Builder")) {
++      return GeckoResult.fromException(new WebAuthnUtils.Exception("NOT_SUPPORTED_ERR"));
++    }
++
+     if (!assertionBundle.containsKey("isWebAuthn")) {
+       // FIDO U2F not supported by Android (for us anyway) at this time
+       return GeckoResult.fromException(new WebAuthnUtils.Exception("NOT_SUPPORTED_ERR"));
+@@ -504,10 +577,7 @@
+                     });
+           });
+     } catch (final java.lang.Exception e) {
+-      // We need to ensure we catch any possible exception here in order to ensure
+-      // that the Promise on the content side is appropriately rejected. In particular,
+-      // we will get `NoClassDefFoundError` if we're running on a device that does not
+-      // have Google Play Services.
++      // Preserve the existing settlement for ordinary provider exceptions.
+       Log.w(LOGTAG, "Couldn't make credential", e);
+       return GeckoResult.fromException(new WebAuthnUtils.Exception("UNKNOWN_ERR"));
+     }
+@@ -604,6 +674,9 @@
+ 
+   @WrapForJNI(calledFrom = "gecko")
+   private static GeckoResult<Boolean> webAuthnIsUserVerifyingPlatformAuthenticatorAvailable() {
++    if (!isGmsProviderAvailable()) {
++      return GeckoResult.fromValue(false);
++    }
+     final Task<Boolean> task;
+     if (BuildConfig.MOZILLA_OFFICIAL) {
+       final Fido2PrivilegedApiClient fidoClient =
+@@ -630,6 +703,9 @@
+ 
+   private static GeckoResult<Boolean> hasCredentialInGMS(
+       final String rpId, final WebAuthnUtils.WebAuthnPublicCredential[] allowList) {
++    if (!isGmsProviderAvailable()) {
++      return GeckoResult.fromValue(false);
++    }
+     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+       // Always use GMS on old Android
+       return GeckoResult.fromValue(true);
+@@ -639,6 +715,10 @@
+       return GeckoResult.fromValue(false);
+     }
+ 
++    if (!areGmsClassesAvailable("com.google.android.gms.fido.fido2.api.common.FidoCredentialDetails")) {
++      return GeckoResult.fromValue(false);
++    }
++
+     final GeckoResult<Boolean> result = new GeckoResult<>();
+     try {
+       final Fido2PrivilegedApiClient fidoClient =

@@ -1,0 +1,126 @@
+--- a/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHLSDemuxerWrapper.java
++++ b/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHLSDemuxerWrapper.java
+@@ -12,7 +12,7 @@
+ 
+ public final class GeckoHLSDemuxerWrapper {
+   private static final String LOGTAG = "GeckoHLSDemuxerWrapper";
+-  private static final boolean DEBUG = !BuildConfig.MOZILLA_OFFICIAL;
++  private static final boolean DEBUG = false;
+ 
+   // NOTE : These TRACK definitions should be synced with Gecko.
+   public enum TrackType {
+@@ -52,7 +52,7 @@
+   } // Callbacks
+ 
+   private static void assertTrue(final boolean condition) {
+-    if (DEBUG && !condition) {
++    if (!BuildConfig.MOZILLA_OFFICIAL && !condition) {
+       throw new AssertionError("Expected condition to be true");
+     }
+   }
+--- a/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHLSResourceWrapper.java
++++ b/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHLSResourceWrapper.java
+@@ -14,7 +14,7 @@
+ 
+ public class GeckoHLSResourceWrapper {
+   private static final String LOGTAG = "GeckoHLSResourceWrapper";
+-  private static final boolean DEBUG = !BuildConfig.MOZILLA_OFFICIAL;
++  private static final boolean DEBUG = false;
+   private BaseHlsPlayer mPlayer = null;
+   private boolean mDestroy = false;
+ 
+@@ -101,7 +101,7 @@
+   }
+ 
+   private static void assertTrue(final boolean condition) {
+-    if (DEBUG && !condition) {
++    if (!BuildConfig.MOZILLA_OFFICIAL && !condition) {
+       throw new AssertionError("Expected condition to be true");
+     }
+   }
+--- a/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHlsAudioRenderer.java
++++ b/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHlsAudioRenderer.java
+@@ -29,7 +29,7 @@
+   public GeckoHlsAudioRenderer(final GeckoHlsPlayer.ComponentEventDispatcher eventDispatcher) {
+     super(C.TRACK_TYPE_AUDIO, eventDispatcher);
+     LOGTAG = getClass().getSimpleName();
+-    DEBUG = !BuildConfig.MOZILLA_OFFICIAL;
++    DEBUG = false;
+   }
+ 
+   @NonNull
+--- a/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHlsPlayer.java
++++ b/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHlsPlayer.java
+@@ -54,7 +54,7 @@
+     implements BaseHlsPlayer, ExoPlayer.Listener, HttpChannelDataSource.ChannelProvider {
+   private static final String LOGTAG = "GeckoHlsPlayer";
+   private static final int MAX_TIMELINE_ITEM_LINES = 3;
+-  private static final boolean DEBUG = !BuildConfig.MOZILLA_OFFICIAL;
++  private static final boolean DEBUG = false;
+ 
+   private static final AtomicInteger sPlayerId = new AtomicInteger(0);
+   /*
+@@ -199,7 +199,7 @@
+   private boolean mReleaseStarted = false;
+ 
+   private static void assertTrue(final boolean condition) {
+-    if (DEBUG && !condition) {
++    if (!BuildConfig.MOZILLA_OFFICIAL && !condition) {
+       throw new AssertionError("Expected condition to be true");
+     }
+   }
+@@ -484,9 +484,9 @@
+ 
+     if (DEBUG) {
+       printTracks(tracks);
+-      if (!hasMappedTrack(tracks)) {
+-        return;
+-      }
++    }
++    if (!BuildConfig.MOZILLA_OFFICIAL && !hasMappedTrack(tracks)) {
++      return;
+     }
+ 
+     mTracksInfo.reset();
+@@ -513,7 +513,7 @@
+   private boolean hasMappedTrack(final Tracks tracks) {
+     final MappedTrackInfo mappedTrackInfo = mTrackSelector.getCurrentMappedTrackInfo();
+     if (mappedTrackInfo == null) {
+-      Log.d(LOGTAG, "No mapped track");
++      if (DEBUG) Log.d(LOGTAG, "No mapped track");
+       return false;
+     }
+     if (DEBUG) {
+--- a/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHlsRendererBase.java
++++ b/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHlsRendererBase.java
+@@ -66,7 +66,7 @@
+   private final DecoderInputBuffer mNoDataBuffer = DecoderInputBuffer.newNoDataInstance();
+ 
+   protected void assertTrue(final boolean condition) {
+-    if (DEBUG && !condition) {
++    if (!BuildConfig.MOZILLA_OFFICIAL && !condition) {
+       throw new AssertionError("Expected condition to be true");
+     }
+   }
+--- a/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHlsVideoRenderer.java
++++ b/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHlsVideoRenderer.java
+@@ -67,7 +67,7 @@
+   public GeckoHlsVideoRenderer(final GeckoHlsPlayer.ComponentEventDispatcher eventDispatcher) {
+     super(C.TRACK_TYPE_VIDEO, eventDispatcher);
+     LOGTAG = getClass().getSimpleName();
+-    DEBUG = !BuildConfig.MOZILLA_OFFICIAL;
++    DEBUG = false;
+   }
+ 
+   @Override
+--- a/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/MediaManager.java
++++ b/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/MediaManager.java
+@@ -16,7 +16,7 @@
+ 
+ public final class MediaManager extends Service {
+   private static final String LOGTAG = "GeckoMediaManager";
+-  private static final boolean DEBUG = !BuildConfig.MOZILLA_OFFICIAL;
++  private static final boolean DEBUG = false;
+   private static boolean sNativeLibLoaded;
+   private int mNumActiveRequests = 0;
+ 

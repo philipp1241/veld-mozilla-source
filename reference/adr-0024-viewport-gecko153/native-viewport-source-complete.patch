@@ -1,0 +1,316 @@
+diff --git a/docshell/base/BrowsingContext.cpp b/docshell/base/BrowsingContext.cpp
+--- a/docshell/base/BrowsingContext.cpp
++++ b/docshell/base/BrowsingContext.cpp
+@@ -3365,6 +3365,20 @@
+   });
+ }
+ 
++void BrowsingContext::DidSet(FieldIndex<IDX_UseDisplayWidthForDesktopViewport>,
++                             bool aOldValue) {
++  MOZ_ASSERT(IsTop(), "Should only set in the top-level browsing context");
++  if (GetUseDisplayWidthForDesktopViewport() == aOldValue) {
++    return;
++  }
++  PresContextAffectingFieldChanged();
++  if (nsIDocShell* shell = GetDocShell()) {
++    if (RefPtr ps = shell->GetPresShell()) {
++      ps->MaybeRecreateMobileViewportManager(/* aAfterInitialization= */ true);
++    }
++  }
++}
++
+ void BrowsingContext::DidSet(FieldIndex<IDX_ForceDesktopViewport>,
+                              bool aOldValue) {
+   MOZ_ASSERT(IsTop(), "Should only set in the top-level browsing context");
+diff --git a/docshell/base/BrowsingContext.h b/docshell/base/BrowsingContext.h
+--- a/docshell/base/BrowsingContext.h
++++ b/docshell/base/BrowsingContext.h
+@@ -192,6 +192,7 @@
+   FIELD(UseGlobalHistory, bool)                                               \
+   FIELD(TargetTopLevelLinkClicksToBlankInternal, bool)                        \
+   FIELD(FullscreenAllowedByOwner, bool)                                       \
++  FIELD(UseDisplayWidthForDesktopViewport, bool)                              \
+   FIELD(ForceDesktopViewport, bool)                                           \
+   /*                                                                          \
+    * "is popup" in the spec.                                                  \
+@@ -693,6 +694,10 @@
+ 
+   bool ForceDesktopViewport() const { return GetForceDesktopViewport(); }
+ 
++  bool UseDisplayWidthForDesktopViewport() const {
++    return GetUseDisplayWidthForDesktopViewport();
++  }
++
+   bool AuthorStyleDisabledDefault() const {
+     return GetAuthorStyleDisabledDefault();
+   }
+@@ -1355,6 +1360,8 @@
+     return true;
+   }
+   void DidSet(FieldIndex<IDX_HasOrientationOverride>, bool aOldValue);
++  MOZ_CAN_RUN_SCRIPT_BOUNDARY void DidSet(
++      FieldIndex<IDX_UseDisplayWidthForDesktopViewport>, bool aOldValue);
+   MOZ_CAN_RUN_SCRIPT_BOUNDARY void DidSet(FieldIndex<IDX_ForceDesktopViewport>,
+                                           bool aOldValue);
+ 
+@@ -1542,6 +1549,11 @@
+                       ContentParent* aSource);
+   void DidSet(FieldIndex<IDX_AllowJavascript>, bool aOldValue);
+ 
++  bool CanSet(FieldIndex<IDX_UseDisplayWidthForDesktopViewport>, bool aValue,
++              ContentParent* aSource) {
++    return IsTop() && XRE_IsParentProcess();
++  }
++
+   bool CanSet(FieldIndex<IDX_ForceDesktopViewport>, bool aValue,
+               ContentParent* aSource) {
+     return IsTop() && XRE_IsParentProcess();
+diff --git a/dom/base/Document.cpp b/dom/base/Document.cpp
+--- a/dom/base/Document.cpp
++++ b/dom/base/Document.cpp
+@@ -11121,6 +11121,11 @@
+   // or a PDF.js page.
+   if (bc && bc->ForceDesktopViewport() && !IsAboutPage() &&
+       !nsContentUtils::IsPDFJS(NodePrincipal())) {
++    if (bc->GetUseDisplayWidthForDesktopViewport()) {
++      return nsViewportInfo(aDisplaySize, defaultScale,
++                            nsViewportInfo::ZoomFlag::AllowZoom,
++                            nsViewportInfo::ZoomBehaviour::Desktop);
++    }
+     CSSCoord viewportWidth =
+         StaticPrefs::browser_viewport_desktopWidth() / fullZoom;
+     // Do not use a desktop viewport size less wide than the display.
+diff --git a/dom/chrome-webidl/BrowsingContext.webidl b/dom/chrome-webidl/BrowsingContext.webidl
+--- a/dom/chrome-webidl/BrowsingContext.webidl
++++ b/dom/chrome-webidl/BrowsingContext.webidl
+@@ -298,6 +298,12 @@
+    */
+   [SetterThrows] attribute boolean forceDesktopViewport;
+ 
++  /**
++   * Use display width at the current CSS-to-device scale for a forced desktop
++   * viewport. Only settable on the top browsing context in the parent process.
++   */
++  [SetterThrows] attribute boolean useDisplayWidthForDesktopViewport;
++
+   /*
+    * Default load flags (as defined in nsIRequest) that will be set on all
+    * requests made by this BrowsingContext.
+diff --git a/mobile/android/geckoview/api.txt b/mobile/android/geckoview/api.txt
+--- a/mobile/android/geckoview/api.txt
++++ b/mobile/android/geckoview/api.txt
+@@ -1325,6 +1325,7 @@
+     method @NonNull @UiThread public OverscrollEdgeEffect getOverscrollEdgeEffect();
+     method @UiThread public void getPageToScreenMatrix(@NonNull Matrix);
+     method @UiThread public void getPageToSurfaceMatrix(@NonNull Matrix);
++    method @HandlerThread @NonNull public GeckoResult<Float> getPageZoom();
+     method @NonNull @UiThread public PanZoomController getPanZoomController();
+     method @AnyThread @NonNull public SessionPdfFileSaver getPdfFileSaver();
+     method @Nullable @UiThread public GeckoSession.PermissionDelegate getPermissionDelegate();
+@@ -1374,6 +1375,7 @@
+     method @AnyThread public void setMediaDelegate(@Nullable GeckoSession.MediaDelegate);
+     method @AnyThread public void setMediaSessionDelegate(@Nullable MediaSession.Delegate);
+     method @UiThread public void setNavigationDelegate(@Nullable GeckoSession.NavigationDelegate);
++    method @HandlerThread @NonNull public GeckoResult<Float> setPageZoom(float);
+     method @UiThread public void setPermissionDelegate(@Nullable GeckoSession.PermissionDelegate);
+     method @AnyThread public void setPrintDelegate(@Nullable GeckoSession.PrintDelegate);
+     method @AnyThread public void setPriorityHint(int);
+@@ -2185,6 +2187,7 @@
+     field public static final int USER_AGENT_MODE_MOBILE = 0;
+     field public static final int USER_AGENT_MODE_VR = 2;
+     field public static final int VIEWPORT_MODE_DESKTOP = 1;
++    field public static final int VIEWPORT_MODE_DESKTOP_PANEL = 2;
+     field public static final int VIEWPORT_MODE_MOBILE = 0;
+   }
+ 
+diff --git a/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/GeckoSession.java b/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/GeckoSession.java
+--- a/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/GeckoSession.java
++++ b/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/GeckoSession.java
+@@ -104,6 +104,8 @@
+ public class GeckoSession {
+   private static final String LOGTAG = "GeckoSession";
+   private static final boolean DEBUG = false;
++  private static final float PAGE_ZOOM_MIN = 0.30f;
++  private static final float PAGE_ZOOM_MAX = 5.00f;
+ 
+   // Type of changes given to onWindowChanged.
+   // Window has been cleared due to the session being closed.
+@@ -1365,6 +1367,36 @@
+   }
+ 
+   /**
++   * Applies full-page layout zoom to this session, independently of compositor pinch zoom.
++   *
++   * @param zoom factor from {@link #PAGE_ZOOM_MIN} through {@link #PAGE_ZOOM_MAX}; 1.0 is 100%.
++   * @return the factor read back from Gecko after the update.
++   * @throws IllegalArgumentException if the factor is not finite or is outside the supported range.
++   */
++  @HandlerThread
++  public @NonNull GeckoResult<Float> setPageZoom(final float zoom) {
++    ThreadUtils.assertOnHandlerThread();
++    if (!Float.isFinite(zoom) || zoom < PAGE_ZOOM_MIN || zoom > PAGE_ZOOM_MAX) {
++      throw new IllegalArgumentException("Page zoom must be finite and between 0.30 and 5.00");
++    }
++
++    final GeckoBundle data = new GeckoBundle(1);
++    data.putString("zoom", Float.toString(zoom));
++    return mEventDispatcher.queryString("GeckoView:SetPageZoom", data).map(Float::valueOf);
++  }
++
++  /**
++   * Returns this session's full-page layout zoom factor, where 1.0 is 100%.
++   *
++   * @return the factor currently reported by Gecko.
++   */
++  @HandlerThread
++  public @NonNull GeckoResult<Float> getPageZoom() {
++    ThreadUtils.assertOnHandlerThread();
++    return mEventDispatcher.queryString("GeckoView:GetPageZoom").map(Float::valueOf);
++  }
++
++  /**
+    * Get the default user agent for this GeckoView build.
+    *
+    * <p>This method does not account for any override that might have been applied to the user agent
+diff --git a/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/GeckoSessionSettings.java b/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/GeckoSessionSettings.java
+--- a/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/GeckoSessionSettings.java
++++ b/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/GeckoSessionSettings.java
+@@ -241,7 +241,7 @@
+ 
+   /** The view port mode */
+   @Retention(RetentionPolicy.SOURCE)
+-  @IntDef({VIEWPORT_MODE_MOBILE, VIEWPORT_MODE_DESKTOP})
++  @IntDef({VIEWPORT_MODE_MOBILE, VIEWPORT_MODE_DESKTOP, VIEWPORT_MODE_DESKTOP_PANEL})
+   public @interface ViewportMode {}
+ 
+   // This needs to match GeckoViewSettingsChild.js
+@@ -259,6 +259,13 @@
+   public static final int VIEWPORT_MODE_DESKTOP = 1;
+ 
+   /**
++   * Desktop layout at the current native display width and full-page zoom. Page meta viewport
++   * constraints and automatic fit-to-content scaling are ignored. Fixed-width content may overflow
++   * horizontally. This mode is specific to the Veld GeckoView build.
++   */
++  public static final int VIEWPORT_MODE_DESKTOP_PANEL = 2;
++
++  /**
+    * Typed key for GeckoSessionSettings entries.
+    *
+    * @param <T> the type of values allowed for this key
+@@ -316,7 +323,7 @@
+       new Key<Integer>(
+           "viewportMode", /* initOnly */
+           false,
+-          Arrays.asList(VIEWPORT_MODE_MOBILE, VIEWPORT_MODE_DESKTOP));
++          Arrays.asList(VIEWPORT_MODE_MOBILE, VIEWPORT_MODE_DESKTOP, VIEWPORT_MODE_DESKTOP_PANEL));
+ 
+   /** Key to specify which display-mode we should use. */
+   private static final Key<Integer> DISPLAY_MODE =
+diff --git a/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/doc-files/CHANGELOG.md b/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/doc-files/CHANGELOG.md
+--- a/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/doc-files/CHANGELOG.md
++++ b/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/doc-files/CHANGELOG.md
+@@ -14,6 +14,8 @@
+ ⚠️  breaking change and deprecation notices
+ 
+ ## v153
++- Added GeckoSessionSettings.VIEWPORT_MODE_DESKTOP_PANEL for native-width desktop layout in the Veld-specific GeckoView build.
++- Added GeckoSession.setPageZoom(float) and GeckoSession.getPageZoom() for per-session full-page layout zoom in the Veld-specific GeckoView build.
+ - Added [`SourceType`][153.1] annotation to [`ScrollPositionUpdate.source`][153.2]
+   ([bug 1994860]({{bugzilla}}1994860))
+ - Updated the [`PURGED_BOUNCETRACKER`][129.3] value and added new [`REPLACED_FINGERPRINTING_CONTENT`] ContentBlockingController.Event. ([bug 2039485]({{bugzilla}}2039485))
+@@ -1988,4 +1990,4 @@
+ [65.24]: {{javadoc_uri}}/CrashReporter.html#sendCrashReport(android.content.Context,android.os.Bundle,java.lang.String)
+ [65.25]: {{javadoc_uri}}/GeckoResult.html
+ 
+-[api-version]: e2d7b4a86368971ed93ef141051e884efaf2e472
++[api-version]: 82ce7a31ff303f22bbce7cb26298f50136b13d96
+diff --git a/mobile/shared/modules/geckoview/GeckoViewSettings.sys.mjs b/mobile/shared/modules/geckoview/GeckoViewSettings.sys.mjs
+--- a/mobile/shared/modules/geckoview/GeckoViewSettings.sys.mjs
++++ b/mobile/shared/modules/geckoview/GeckoViewSettings.sys.mjs
+@@ -25,6 +25,10 @@
+ // eslint-disable-next-line no-unused-vars
+ const VIEWPORT_MODE_MOBILE = 0;
+ const VIEWPORT_MODE_DESKTOP = 1;
++const VIEWPORT_MODE_DESKTOP_PANEL = 2;
++
++const PAGE_ZOOM_MIN = 0.30;
++const PAGE_ZOOM_MAX = 5.00;
+ 
+ // Handles GeckoSession settings.
+ export class GeckoViewSettings extends GeckoViewModule {
+@@ -34,7 +38,11 @@
+     this._userAgentOverride = null;
+     this._sessionContextId = null;
+ 
+-    this.registerListener(["GeckoView:GetUserAgent"]);
++    this.registerListener([
++      "GeckoView:GetUserAgent",
++      "GeckoView:SetPageZoom",
++      "GeckoView:GetPageZoom",
++    ]);
+   }
+ 
+   onEvent(aEvent, aData, aCallback) {
+@@ -43,6 +51,46 @@
+     switch (aEvent) {
+       case "GeckoView:GetUserAgent": {
+         aCallback.onSuccess(this.customUserAgent ?? this.getMobileUserAgent());
++        break;
++      }
++
++      case "GeckoView:SetPageZoom": {
++        const zoom = Number(aData?.zoom);
++        if (!Number.isFinite(zoom) || zoom < PAGE_ZOOM_MIN || zoom > PAGE_ZOOM_MAX) {
++          aCallback.onError("Page zoom must be finite and between 0.30 and 5.00");
++          break;
++        }
++
++        const browser = this.browser;
++        const context = browser?.browsingContext?.top;
++        if (!context || context.isDiscarded) {
++          aCallback.onError("Page zoom is unavailable for this session");
++          break;
++        }
++
++        try {
++          browser.fullZoom = zoom;
++          aCallback.onSuccess(String(browser.fullZoom));
++        } catch (error) {
++          aCallback.onError(`Failed to apply page zoom: ${error}`);
++        }
++        break;
++      }
++
++      case "GeckoView:GetPageZoom": {
++        const browser = this.browser;
++        const context = browser?.browsingContext?.top;
++        if (!context || context.isDiscarded) {
++          aCallback.onError("Page zoom is unavailable for this session");
++          break;
++        }
++
++        try {
++          aCallback.onSuccess(String(browser.fullZoom));
++        } catch (error) {
++          aCallback.onError(`Failed to read page zoom: ${error}`);
++        }
++        break;
+       }
+     }
+   }
+@@ -131,8 +179,12 @@
+   }
+ 
+   set viewportMode(aViewportMode) {
+-    this.browsingContext.forceDesktopViewport =
+-      aViewportMode == VIEWPORT_MODE_DESKTOP;
++    const context = this.browsingContext;
++    context.useDisplayWidthForDesktopViewport =
++      aViewportMode == VIEWPORT_MODE_DESKTOP_PANEL;
++    context.forceDesktopViewport =
++      aViewportMode == VIEWPORT_MODE_DESKTOP ||
++      aViewportMode == VIEWPORT_MODE_DESKTOP_PANEL;
+   }
+ 
+   get userAgentMode() {

@@ -1,0 +1,84 @@
+--- a/mobile/android/geckoview/api.txt
++++ b/mobile/android/geckoview/api.txt
+@@ -1306,6 +1306,7 @@
+     method @NonNull @UiThread public OverscrollEdgeEffect getOverscrollEdgeEffect();
+     method @UiThread public void getPageToScreenMatrix(@NonNull Matrix);
+     method @UiThread public void getPageToSurfaceMatrix(@NonNull Matrix);
++    method @HandlerThread @NonNull public GeckoResult<Float> getPageZoom();
+     method @NonNull @UiThread public PanZoomController getPanZoomController();
+     method @AnyThread @NonNull public SessionPdfFileSaver getPdfFileSaver();
+     method @AnyThread @NonNull public PdfViewerController.SessionEditor getPdfViewerEditor();
+@@ -1356,6 +1357,7 @@
+     method @UiThread public void setMediaDelegate(@Nullable GeckoSession.MediaDelegate);
+     method @UiThread public void setMediaSessionDelegate(@Nullable MediaSession.Delegate);
+     method @UiThread public void setNavigationDelegate(@Nullable GeckoSession.NavigationDelegate);
++    method @HandlerThread @NonNull public GeckoResult<Float> setPageZoom(float);
+     method @UiThread public void setPermissionDelegate(@Nullable GeckoSession.PermissionDelegate);
+     method @UiThread public void setPrintDelegate(@Nullable GeckoSession.PrintDelegate);
+     method @AnyThread public void setPriorityHint(int);
+--- a/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/GeckoSession.java
++++ b/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/GeckoSession.java
+@@ -104,6 +104,8 @@
+ public class GeckoSession {
+   private static final String LOGTAG = "GeckoSession";
+   private static final boolean DEBUG = false;
++  private static final float PAGE_ZOOM_MIN = 0.30f;
++  private static final float PAGE_ZOOM_MAX = 5.00f;
+ 
+   // Type of changes given to onWindowChanged.
+   // Window has been cleared due to the session being closed.
+@@ -1385,6 +1387,38 @@
+   }
+ 
+   /**
++   * Applies full-page layout zoom to this session, independently of compositor pinch zoom.
++   *
++   * @param zoom factor from {@link #PAGE_ZOOM_MIN} through {@link #PAGE_ZOOM_MAX}; 1.0 is 100%.
++   * @return the factor read back from Gecko after the update.
++   * @throws IllegalArgumentException if the factor is not finite or is outside the supported range.
++   */
++  @HandlerThread
++  public @NonNull GeckoResult<Float> setPageZoom(final float zoom) {
++    ThreadUtils.assertOnHandlerThread();
++    if (!Float.isFinite(zoom) || zoom < PAGE_ZOOM_MIN || zoom > PAGE_ZOOM_MAX) {
++      throw new IllegalArgumentException("Page zoom must be finite and between 0.30 and 5.00");
++    }
++
++    final GeckoBundle data = new GeckoBundle(1);
++    data.putString("zoom", Float.toString(zoom));
++    return mEventDispatcher
++        .queryString("GeckoView:SetPageZoom", data)
++        .map(Float::valueOf);
++  }
++
++  /**
++   * Returns this session's full-page layout zoom factor, where 1.0 is 100%.
++   *
++   * @return the factor currently reported by Gecko.
++   */
++  @HandlerThread
++  public @NonNull GeckoResult<Float> getPageZoom() {
++    ThreadUtils.assertOnHandlerThread();
++    return mEventDispatcher.queryString("GeckoView:GetPageZoom").map(Float::valueOf);
++  }
++
++  /**
+    * Get the default user agent for this GeckoView build.
+    *
+    * <p>This method does not account for any override that might have been applied to the user agent
+--- a/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/doc-files/CHANGELOG.md
++++ b/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/doc-files/CHANGELOG.md
+@@ -14,6 +14,7 @@
+ ⚠️  breaking change and deprecation notices
+ 
+ ## v157
++- Added GeckoSession.setPageZoom(float) and GeckoSession.getPageZoom() for per-session full-page layout zoom in the Veld-specific GeckoView build.
+ - Added [`GeckoSession.getPdfViewerEditor`][157.1] and
+     [`PdfViewerController.SessionEditor.addSignature`][157.2] to place a signature on the PDF the
+     session is displaying. The PDF viewer side is a stub until bug 2069045.
+@@ -2082,4 +2083,4 @@
+ [65.24]: {{javadoc_uri}}/CrashReporter.html#sendCrashReport(android.content.Context,android.os.Bundle,java.lang.String)
+ [65.25]: {{javadoc_uri}}/GeckoResult.html
+ 
+-[api-version]: 89e5187777ce1bcb2f8eeaf93a81a5195b61e341
++[api-version]: 3d8dfd8d3d529f792fcf32f0d16f65cde082897a

@@ -1,0 +1,31 @@
+# Upstream originals: firefox-157.0.source.tar.xz, revision 8eb25af4acf031ab1e06abf1a912275083c820ed
+a2f86e4eb3295be400c7b0693c663dfdb92e5fbd6cdb7c5bb83eccc0ab9f146b  original/mobile/android/geckoview/api.txt
+89096e48d2e2f65aac6594f97d42e9410c2ac52625be3e573630baf3b39513c2  original/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHLSDemuxerWrapper.java
+40b22ce63156e97354334adb644df883a58e471576f6d1b282622f1714761e98  original/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHLSResourceWrapper.java
+5e18775594a38534f4af1b5bdc88daa69edd052599ab22f1123397a67b865000  original/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHlsAudioRenderer.java
+073686b6de1ed73a84974731abf26caa2b6b49a73311b211471c1228a99f6e86  original/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHlsPlayer.java
+02d6c88ae1b6f6b1faaac834d4ea7233fce27604ced1418122995da4ed0a81a5  original/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHlsRendererBase.java
+2fc87c8063bbc8c8d526c72bf5051533c3229481d8ab48c30187f032f7071ab0  original/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHlsVideoRenderer.java
+65f84716d38883833bbacdaff9735e930e6d08a110256ddb5f1f2e6dd1fbc67a  original/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/MediaManager.java
+a7d6ce6fcbcf9cf4663a107ae0a55262692f5ec16b2e2cc6d0838494636d8eb5  original/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/GeckoSession.java
+8c425bc56d7ead7d78c485f029dad09d6437b0ca8776d5ef9bdd60d2ed5c520d  original/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/WebAuthnTokenManager.java
+5852cca081e13001fe9916aea25ecedef2606f868847fbf3897a6d33ef388dda  original/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/doc-files/CHANGELOG.md
+1ef50bf640eb946405aa0e1a151a8b2473f2ecb348cfa11fe4663d7d45871270  original/mobile/shared/modules/geckoview/GeckoViewSettings.sys.mjs
+# Expected result after applying patches/01-04 to the originals; identical to the files in gecko-157/modified/
+fdf5bb3c11cb25ffd7e60f61432c1980259c97353120f707bf4dfbd7dd7e0fc6  result/mobile/android/geckoview/api.txt
+cccf75a6133b540618c4f12aba73429cbae98b94d8149e6b2342c8d5ae7354ad  result/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHLSDemuxerWrapper.java
+481600c9885c24fbda8be40d56dad4173ce67d7da112fb56125ca8461a56adb5  result/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHLSResourceWrapper.java
+46cf3b0ead0c1f64475f7dc8285bafed72f7f6f73cb33b739d22e42cb74b23d5  result/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHlsAudioRenderer.java
+fb65f3a70383cd093c8dea4ee311cb89f415ba438a0cf140e99c1472a3b2c384  result/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHlsPlayer.java
+17ed41c23e8d5a18c887488c3a61b00d2eddfb9c642caff09247e28b9bd1d66e  result/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHlsRendererBase.java
+35274b71bd670143e248e3beb230ff444e674e9a066a8e6751a7a3a58858299c  result/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHlsVideoRenderer.java
+8af2099c3eef2d14dbd5e5bf7343994da4e60b1cc5964d3f13a32b691301ebf2  result/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/MediaManager.java
+40c014fa7597b8bd35bf65ecbc1c895f2a84a81aa95d6b1055cad2b67499ad31  result/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/GeckoSession.java
+661010faf8cd8e115230430bb1aafb78bc79ed2d410fd7606ee673006942d6b1  result/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/WebAuthnTokenManager.java
+014640605d40b9bba14add4e98bb6265294d761e165a399e4ebbb2616623ebe0  result/mobile/android/geckoview/src/main/java/org/mozilla/geckoview/doc-files/CHANGELOG.md
+933172041ea7b4be25fccae3f9912420d65b7e1154bd379554e39459a8c8dc67  result/mobile/shared/modules/geckoview/GeckoViewSettings.sys.mjs
+# Patches (gecko-157/patches/)
+2e7488035fd181cb68f4ee80417fb02f76f67147efbab230e29b78dd1e61ea10  patches/01-privacy-diagnostics.patch
+dd83e762d7e93ee88e6fa18df29ebb583fa01c05659a9e4eb6d097e834efdd27  patches/02-webauthn-absent-gms.patch
+cf6aaa7860f0d25562ed80ff43ba5cbe5d452c38e5cc0ee2676139f0b33baddc  patches/03-page-zoom-java.patch
+29cc9966ae74196a3492f64dc290265c2bce2b138036ad197661994e29cd4fef  patches/04-page-zoom-js-handler.patch
