@@ -1,7 +1,8 @@
 # Veld: MPL-2.0 Source Code Form for modified GeckoView files
 
 This repository is the source-code offer for the Mozilla Public License 2.0 (MPL-2.0)
-files that the Veld browser for Meta Horizon OS ships in modified form. It satisfies
+files that the Veld browser for Meta Horizon OS ships in modified form, and for the
+MPL-2.0 files of Veld's copy of Mozilla's Reader View extension. It satisfies
 MPL-2.0 section 3.2(a): anyone who receives the Veld app can get the Source Code Form
 of every MPL-covered file Veld changed, free of charge.
 
@@ -51,6 +52,38 @@ All twelve complete modified files are under `gecko-157/modified/`, at the same
 paths as in the Mozilla tree, with their original MPL-2.0 headers unchanged.
 `gecko-157/SHA256SUMS` lists the SHA-256 of every original and of every modified
 file, so the result can be checked byte for byte.
+
+## Reader View (Android Components 157.0)
+
+Veld ships its own copy of Mozilla's Reader View extension (the `readerview` built-in of
+the Android Components module `feature-readerview` 157.0) under the id `reader-view@veld`,
+version 1.0, to add its own colour schemes. The seven MPL-2.0 files of that copy are in
+`android-components-157/reader-view/`, exactly as Veld ships them:
+
+| File | Change from Mozilla's file |
+|---|---|
+| `manifest.json` | modified: extension id, name and version only |
+| `readerview.css` | modified: Mozilla's 319 lines unchanged, Veld's colour schemes appended |
+| `readerview.js` | modified: the list of accepted colour scheme names and its check only |
+| `readerview.html` | unmodified |
+| `readerview-content.js` | unmodified |
+| `readerview-background.js` | unmodified |
+| `readability/JSDOMParser-0.4.2.js` | unmodified |
+
+The three modifications are also given as patches in `android-components-157/patches/reader-view/`
+(unified diffs from Mozilla's file to Veld's). `android-components-157/SHA256SUMS` lists the
+SHA-256 of every file here, so the result can be checked byte for byte.
+
+Upstream origin: the nine files under
+`mobile/android/android-components/components/feature/readerview/src/main/assets/extensions/readerview/`
+at mozilla-release revision `8eb25af4acf031ab1e06abf1a912275083c820ed` (Firefox 157.0), as shipped in
+`org.mozilla.components:feature-readerview:157.0` (AAR SHA-256
+`81343920e7406834bd716a75c2aed475742e5e04c49dbe558421e6eda7d8070d`). In that AAR the build writes the
+version into `manifest.json`, so the patch for `manifest.json` starts from the AAR's file.
+Mozilla's headers are kept in each file that has one. The two Readability files of the
+extension (`readability-0.4.2.js`, `readability-readerable-0.4.2.js`) are Apache-2.0, not MPL-2.0,
+and unmodified; they are not part of this repository and are available from the same Mozilla
+source and from <https://github.com/mozilla/readability/tree/0.4.2>.
 
 ## How to rebuild the modified GeckoView
 

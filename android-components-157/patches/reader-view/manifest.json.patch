@@ -1,0 +1,17 @@
+--- a/mobile/android/android-components/components/feature/readerview/src/main/assets/extensions/readerview/manifest.json
++++ b/mobile/android/android-components/components/feature/readerview/src/main/assets/extensions/readerview/manifest.json
+@@ -2,11 +2,11 @@
+   "manifest_version": 2,
+   "browser_specific_settings": {
+     "gecko": {
+-      "id": "readerview@mozac.org"
++      "id": "reader-view@veld"
+     }
+   },
+-  "name": "Mozilla Android Components - ReaderView",
+-  "version": "157.0.20260924.84938",
++  "name": "Veld Reader View",
++  "version": "1.0",
+   "content_scripts": [
+     {
+       "matches": ["<all_urls>"],

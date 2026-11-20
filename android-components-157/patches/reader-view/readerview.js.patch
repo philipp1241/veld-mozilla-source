@@ -1,0 +1,64 @@
+--- a/mobile/android/android-components/components/feature/readerview/src/main/assets/extensions/readerview/readerview.js
++++ b/mobile/android/android-components/components/feature/readerview/src/main/assets/extensions/readerview/readerview.js
+@@ -21,6 +21,47 @@ const preservedClasses = [
+   "wp-smiley",
+ ];
+ 
++// Veld: the colour schemes readerview.css defines, Mozilla's three first. The
++// veld-* schemes are Veld's own (readerview.css, "Veld colour schemes").
++const colorSchemes = [
++  "light",
++  "sepia",
++  "dark",
++  "veld-r1-light",
++  "veld-r1-sepia",
++  "veld-r1-dark",
++  "veld-r2-beige",
++  "veld-r2-black",
++  "veld-r3-light",
++  "veld-r3-warm",
++  "veld-r3-dark",
++  "veld-r4-chrome",
++  "veld-r4-night",
++  "veld-r5-dusk",
++  "veld-r5-dawn",
++  "veld-r6-lilac-paper",
++  "veld-r6-indigo-night",
++  "veld-r7-light",
++  "veld-r7-dark",
++  "veld-r8-ivory",
++  "veld-r8-cream",
++  "veld-r8-ink",
++  "veld-r9-cream",
++  "veld-r9-gold-sand",
++  "veld-r9-dark",
++  "veld-r10-light",
++  "veld-r10-sand",
++  "veld-r10-dark",
++  "veld-r11-light",
++  "veld-r11-sand",
++  "veld-r11-deep-sea",
++  "veld-r12-morning",
++  "veld-r12-dusk-sand",
++  "veld-r12-navy",
++  "veld-r13-light",
++  "veld-r13-dark",
++];
++
+ class ReaderView {
+   static get MIN_FONT_SIZE() {
+     return 1;
+@@ -147,11 +188,10 @@ class ReaderView {
+   /**
+    * Sets the color scheme.
+    *
+-   * @param colorScheme the color scheme to use, must be either light, dark
+-   * or sepia.
++   * @param colorScheme the color scheme to use, one of colorSchemes (Veld).
+    */
+   setColorScheme(colorScheme) {
+-    if (!["light", "sepia", "dark"].includes(colorScheme)) {
++    if (!colorSchemes.includes(colorScheme)) {
+       console.error(`Invalid color scheme specified: ${colorScheme}`);
+       return;
+     }

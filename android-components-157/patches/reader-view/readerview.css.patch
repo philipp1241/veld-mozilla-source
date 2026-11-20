@@ -1,0 +1,518 @@
+--- a/mobile/android/android-components/components/feature/readerview/src/main/assets/extensions/readerview/readerview.css
++++ b/mobile/android/android-components/components/feature/readerview/src/main/assets/extensions/readerview/readerview.css
+@@ -317,3 +317,515 @@
+   margin: 0 .07em;
+   padding: 0;
+ }
++
++/* ======= Veld colour schemes =======
++ * Veld: everything above is Mozilla's readerview.css (Android Components 157.0
++ * feature-readerview) unchanged, so Mozilla's light, sepia and dark look exactly
++ * as before. Below are Veld's own schemes. A body with a veld-* class gets that
++ * scheme's variables: ground (and an optional picture layer), text, secondary
++ * text, link, visited link, site name, selection, quote bar and rule. The rules
++ * after the schemes paint the page with them; they apply to veld-* schemes only.
++ */
++
++/* R1 (Mozilla, tidied): Light */
++.mozac-readerview-body.veld-r1-light {
++  --veld-reader-ground: #ffffff;
++  --veld-reader-text: #222222;
++  --veld-reader-secondary: #666666;
++  --veld-reader-link: #2f5ba6;
++  --veld-reader-visited: #6a4c93;
++  --veld-reader-site-name: #2f5ba6;
++  --veld-reader-selection: #548ffc42;
++  --veld-reader-quote-bar: #858585;
++  --veld-reader-rule: #bdbdbd;
++}
++
++/* R1 (Mozilla, tidied): Sepia */
++.mozac-readerview-body.veld-r1-sepia {
++  --veld-reader-ground: #f4ecd8;
++  --veld-reader-text: #5b4636;
++  --veld-reader-secondary: #6f5a47;
++  --veld-reader-link: #2f5a86;
++  --veld-reader-visited: #764b6e;
++  --veld-reader-site-name: #2f5a86;
++  --veld-reader-selection: #548ffc38;
++  --veld-reader-quote-bar: #a0917f;
++  --veld-reader-rule: #c6baa7;
++}
++
++/* R1 (Mozilla, tidied): Dark */
++.mozac-readerview-body.veld-r1-dark {
++  --veld-reader-ground: #1c1b22;
++  --veld-reader-text: #eeeeee;
++  --veld-reader-secondary: #aaaaaa;
++  --veld-reader-link: #93b5f2;
++  --veld-reader-visited: #c3a9ec;
++  --veld-reader-site-name: #93b5f2;
++  --veld-reader-selection: #548ffc57;
++  --veld-reader-quote-bar: #908f92;
++  --veld-reader-rule: #5b5a5f;
++}
++
++/* R2 (Read in VR): Beige */
++.mozac-readerview-body.veld-r2-beige {
++  --veld-reader-ground: #e7dfce;
++  --veld-reader-text: #1f1b15;
++  --veld-reader-secondary: #4f473b;
++  --veld-reader-link: #33598c;
++  --veld-reader-visited: #6a4a7c;
++  --veld-reader-site-name: #33598c;
++  --veld-reader-selection: #548ffc3d;
++  --veld-reader-quote-bar: #797368;
++  --veld-reader-rule: #aba496;
++}
++
++/* R2 (Read in VR): Black */
++.mozac-readerview-body.veld-r2-black {
++  --veld-reader-ground: #000000;
++  --veld-reader-text: #f4f4f2;
++  --veld-reader-secondary: #c9ccd2;
++  --veld-reader-link: #a0bbee;
++  --veld-reader-visited: #c6b3ea;
++  --veld-reader-site-name: #a0bbee;
++  --veld-reader-selection: #548ffc4c;
++  --veld-reader-quote-bar: #868685;
++  --veld-reader-rule: #494949;
++}
++
++/* R3 (Veld): Light */
++.mozac-readerview-body.veld-r3-light {
++  --veld-reader-ground: #f2f3f5;
++  --veld-reader-text: #1c1e23;
++  --veld-reader-secondary: #565b64;
++  --veld-reader-link: #355ea6;
++  --veld-reader-visited: #664f94;
++  --veld-reader-site-name: #355ea6;
++  --veld-reader-selection: #548ffc3d;
++  --veld-reader-quote-bar: #7c7e82;
++  --veld-reader-rule: #b2b3b6;
++}
++
++/* R3 (Veld): Warm */
++.mozac-readerview-body.veld-r3-warm {
++  --veld-reader-ground: #f1ebe0;
++  --veld-reader-text: #24221f;
++  --veld-reader-secondary: #5d564c;
++  --veld-reader-link: #2d5c9e;
++  --veld-reader-visited: #6c4c88;
++  --veld-reader-site-name: #2d5c9e;
++  --veld-reader-selection: #548ffc38;
++  --veld-reader-quote-bar: #807c76;
++  --veld-reader-rule: #b4afa6;
++}
++
++/* R3 (Veld): Dark */
++.mozac-readerview-body.veld-r3-dark {
++  --veld-reader-ground: #1c1e23;
++  --veld-reader-text: #eef0f4;
++  --veld-reader-secondary: #a7acb5;
++  --veld-reader-link: #a0bbee;
++  --veld-reader-visited: #c2aeea;
++  --veld-reader-site-name: #a0bbee;
++  --veld-reader-selection: #548ffc52;
++  --veld-reader-quote-bar: #909296;
++  --veld-reader-rule: #5b5d62;
++}
++
++/* R4 (Veld chrome and night): Chrome */
++.mozac-readerview-body.veld-r4-chrome {
++  --veld-reader-ground: #292b30;
++  --veld-reader-text: #eef0f4;
++  --veld-reader-secondary: #b0b5be;
++  --veld-reader-link: #a6c0f2;
++  --veld-reader-visited: #c9b5ee;
++  --veld-reader-site-name: #a6c0f2;
++  --veld-reader-selection: #548ffc57;
++  --veld-reader-quote-bar: #95979c;
++  --veld-reader-rule: #64666b;
++}
++
++/* R4 (Veld chrome and night): Night */
++.mozac-readerview-body.veld-r4-night {
++  --veld-reader-ground: #0e0f12;
++  --veld-reader-text: #e9eaec;
++  --veld-reader-secondary: #a9aeb7;
++  --veld-reader-link: #9db6e8;
++  --veld-reader-visited: #bfaae3;
++  --veld-reader-site-name: #9db6e8;
++  --veld-reader-selection: #548ffc4c;
++  --veld-reader-quote-bar: #86878a;
++  --veld-reader-rule: #505153;
++}
++
++/* R5 (Dusk horizon): Dusk */
++.mozac-readerview-body.veld-r5-dusk {
++  --veld-reader-ground: #15171b;
++  --veld-reader-picture: linear-gradient(90deg, transparent, #9db7eabf 50%, transparent),
++    linear-gradient(to bottom, #0b0c0f, #0c0d10, #0e0f12, #101115, #121418, #16181d, #1c2028, #34466a, #15171b);
++  --veld-reader-picture-size: 100% 1px, 100% 100%;
++  --veld-reader-picture-position: 0 87.5%, 0 0;
++  --veld-reader-text: #f2f2f0;
++  --veld-reader-secondary: #b9c0ce;
++  --veld-reader-link: #a0bbee;
++  --veld-reader-visited: #c6b3ea;
++  --veld-reader-site-name: #a0bbee;
++  --veld-reader-selection: #548ffc52;
++  --veld-reader-quote-bar: #f2f2f08c;
++  --veld-reader-rule: #f2f2f04c;
++}
++
++/* R5 (Dusk horizon): Dawn */
++.mozac-readerview-body.veld-r5-dawn {
++  --veld-reader-ground: #eae5de;
++  --veld-reader-picture: linear-gradient(90deg, transparent, #c9a27a8c 50%, transparent),
++    linear-gradient(to bottom, #eef1f6, #eff1f5, #f0f1f4, #f1f1f2, #f2f0ef, #f3efeb, #f2eae2, #ebd9c7, #eae5de);
++  --veld-reader-picture-size: 100% 1px, 100% 100%;
++  --veld-reader-picture-position: 0 87.5%, 0 0;
++  --veld-reader-text: #1e2128;
++  --veld-reader-secondary: #545a66;
++  --veld-reader-link: #2b579f;
++  --veld-reader-visited: #6c4c93;
++  --veld-reader-site-name: #2b579f;
++  --veld-reader-selection: #548ffc3d;
++  --veld-reader-quote-bar: #1e21288c;
++  --veld-reader-rule: #1e21284c;
++}
++
++/* R6 (Indigo): Lilac paper */
++.mozac-readerview-body.veld-r6-lilac-paper {
++  --veld-reader-ground: #f2f0f8;
++  --veld-reader-text: #1e1a33;
++  --veld-reader-secondary: #575170;
++  --veld-reader-link: #43529a;
++  --veld-reader-visited: #7a4a8f;
++  --veld-reader-site-name: #43529a;
++  --veld-reader-selection: #8e7cf03d;
++  --veld-reader-quote-bar: #7d7a8c;
++  --veld-reader-rule: #b2b0bd;
++}
++
++/* R6 (Indigo): Indigo night */
++.mozac-readerview-body.veld-r6-indigo-night {
++  --veld-reader-ground: #171a33;
++  --veld-reader-text: #ecebfa;
++  --veld-reader-secondary: #b5b3d6;
++  --veld-reader-link: #aab8f5;
++  --veld-reader-visited: #d6b4ea;
++  --veld-reader-site-name: #aab8f5;
++  --veld-reader-selection: #8e7cf05c;
++  --veld-reader-quote-bar: #8c8da0;
++  --veld-reader-rule: #57596f;
++}
++
++/* R7 (Veld purple): Light */
++.mozac-readerview-body.veld-r7-light {
++  --veld-reader-ground: #f7f1fb;
++  --veld-reader-text: #2c2035;
++  --veld-reader-secondary: #5f4f6c;
++  --veld-reader-link: #4a4d98;
++  --veld-reader-visited: #874080;
++  --veld-reader-site-name: #4a4d98;
++  --veld-reader-selection: #b38adc4c;
++  --veld-reader-quote-bar: #877e8e;
++  --veld-reader-rule: #bab2c0;
++}
++
++/* R7 (Veld purple): Dark */
++.mozac-readerview-body.veld-r7-dark {
++  --veld-reader-ground: #2c2035;
++  --veld-reader-text: #f7efff;
++  --veld-reader-secondary: #d2badf;
++  --veld-reader-link: #bfc6f7;
++  --veld-reader-visited: #e8b3d8;
++  --veld-reader-site-name: #bfc6f7;
++  --veld-reader-selection: #b38adc57;
++  --veld-reader-quote-bar: #9c92a4;
++  --veld-reader-rule: #695e72;
++}
++
++/* R8 (Paper and ink): Ivory */
++.mozac-readerview-body.veld-r8-ivory {
++  --veld-reader-ground: #faf7f0;
++  --veld-reader-text: #23201c;
++  --veld-reader-secondary: #625c53;
++  --veld-reader-link: #1f5f70;
++  --veld-reader-visited: #7a4a6e;
++  --veld-reader-site-name: #1f5f70;
++  --veld-reader-selection: #f2d46b8c;
++  --veld-reader-quote-bar: #84817b;
++  --veld-reader-rule: #bab6b0;
++}
++
++/* R8 (Paper and ink): Cream */
++.mozac-readerview-body.veld-r8-cream {
++  --veld-reader-ground: #f1e6cf;
++  --veld-reader-text: #3b2f24;
++  --veld-reader-secondary: #6b5a46;
++  --veld-reader-link: #22586a;
++  --veld-reader-visited: #7b4a5d;
++  --veld-reader-site-name: #22586a;
++  --veld-reader-selection: #ebc85a80;
++  --veld-reader-quote-bar: #8d8171;
++  --veld-reader-rule: #baaf9c;
++}
++
++/* R8 (Paper and ink): Ink */
++.mozac-readerview-body.veld-r8-ink {
++  --veld-reader-ground: #22201d;
++  --veld-reader-text: #efe9de;
++  --veld-reader-secondary: #b5ac9c;
++  --veld-reader-link: #8cc5cf;
++  --veld-reader-visited: #d6b0c8;
++  --veld-reader-site-name: #8cc5cf;
++  --veld-reader-selection: #f2d46b3d;
++  --veld-reader-quote-bar: #938f87;
++  --veld-reader-rule: #605c57;
++}
++
++/* R9 (Guest gold): Cream */
++.mozac-readerview-body.veld-r9-cream {
++  --veld-reader-ground: #fbf6ea;
++  --veld-reader-text: #2e2b26;
++  --veld-reader-secondary: #615949;
++  --veld-reader-link: #2f5a8c;
++  --veld-reader-visited: #77496c;
++  --veld-reader-site-name: #2f5a8c;
++  --veld-reader-selection: #d1b77c73;
++  --veld-reader-quote-bar: #8a867e;
++  --veld-reader-rule: #beb9af;
++}
++
++/* R9 (Guest gold): Gold sand */
++.mozac-readerview-body.veld-r9-gold-sand {
++  --veld-reader-ground: #efe3c8;
++  --veld-reader-text: #3a3226;
++  --veld-reader-secondary: #635540;
++  --veld-reader-link: #2b5683;
++  --veld-reader-visited: #74466a;
++  --veld-reader-site-name: #2b5683;
++  --veld-reader-selection: #c9a55c73;
++  --veld-reader-quote-bar: #8b826f;
++  --veld-reader-rule: #b9ae97;
++}
++
++/* R9 (Guest gold): Dark */
++.mozac-readerview-body.veld-r9-dark {
++  --veld-reader-ground: #2e2b26;
++  --veld-reader-text: #fff7e4;
++  --veld-reader-secondary: #d2c7ac;
++  --veld-reader-link: #e9d29b;
++  --veld-reader-visited: #d9b7d6;
++  --veld-reader-site-name: #e9d29b;
++  --veld-reader-selection: #d1b77c52;
++  --veld-reader-quote-bar: #a19b8e;
++  --veld-reader-rule: #6d685f;
++}
++
++/* R10 (Low glare): Light */
++.mozac-readerview-body.veld-r10-light {
++  --veld-reader-ground: #e9eaec;
++  --veld-reader-text: #2a2c30;
++  --veld-reader-secondary: #585c64;
++  --veld-reader-link: #31589f;
++  --veld-reader-visited: #6a5096;
++  --veld-reader-site-name: #31589f;
++  --veld-reader-selection: #548ffc38;
++  --veld-reader-quote-bar: #808285;
++  --veld-reader-rule: #b0b1b4;
++}
++
++/* R10 (Low glare): Sand */
++.mozac-readerview-body.veld-r10-sand {
++  --veld-reader-ground: #e4daca;
++  --veld-reader-text: #3a3128;
++  --veld-reader-secondary: #5f5344;
++  --veld-reader-link: #34597e;
++  --veld-reader-visited: #73506d;
++  --veld-reader-site-name: #34597e;
++  --veld-reader-selection: #548ffc33;
++  --veld-reader-quote-bar: #867d71;
++  --veld-reader-rule: #b1a799;
++}
++
++/* R10 (Low glare): Dark */
++.mozac-readerview-body.veld-r10-dark {
++  --veld-reader-ground: #2a2c31;
++  --veld-reader-text: #d9dce1;
++  --veld-reader-secondary: #a2a7b0;
++  --veld-reader-link: #93aee0;
++  --veld-reader-visited: #b9a3db;
++  --veld-reader-site-name: #93aee0;
++  --veld-reader-selection: #548ffc4c;
++  --veld-reader-quote-bar: #8a8d92;
++  --veld-reader-rule: #5e6166;
++}
++
++/* R11 (Sea and sand): Light */
++.mozac-readerview-body.veld-r11-light {
++  --veld-reader-ground: #f5f3ee;
++  --veld-reader-text: #1f2325;
++  --veld-reader-secondary: #566065;
++  --veld-reader-link: #1c6370;
++  --veld-reader-visited: #6b4f7f;
++  --veld-reader-site-name: #1c6370;
++  --veld-reader-selection: #3fa7a842;
++  --veld-reader-quote-bar: #7f817f;
++  --veld-reader-rule: #b5b5b2;
++}
++
++/* R11 (Sea and sand): Sand */
++.mozac-readerview-body.veld-r11-sand {
++  --veld-reader-ground: #ece2cf;
++  --veld-reader-text: #2f2a22;
++  --veld-reader-secondary: #5f5749;
++  --veld-reader-link: #1e5e66;
++  --veld-reader-visited: #74485f;
++  --veld-reader-site-name: #1e5e66;
++  --veld-reader-selection: #3fa7a842;
++  --veld-reader-quote-bar: #847d70;
++  --veld-reader-rule: #b3ab9b;
++}
++
++/* R11 (Sea and sand): Deep sea */
++.mozac-readerview-body.veld-r11-deep-sea {
++  --veld-reader-ground: #1a2023;
++  --veld-reader-text: #e6ecee;
++  --veld-reader-secondary: #a6b3b8;
++  --veld-reader-link: #7ccbd0;
++  --veld-reader-visited: #c9b1df;
++  --veld-reader-site-name: #7ccbd0;
++  --veld-reader-selection: #3fa7a857;
++  --veld-reader-quote-bar: #8a9093;
++  --veld-reader-rule: #575d60;
++}
++
++/* R12 (Night blue): Morning */
++.mozac-readerview-body.veld-r12-morning {
++  --veld-reader-ground: #eef2f8;
++  --veld-reader-text: #172033;
++  --veld-reader-secondary: #4e5a6e;
++  --veld-reader-link: #305aa3;
++  --veld-reader-visited: #634d99;
++  --veld-reader-site-name: #305aa3;
++  --veld-reader-selection: #548ffc3d;
++  --veld-reader-quote-bar: #787e8c;
++  --veld-reader-rule: #aeb3bd;
++}
++
++/* R12 (Night blue): Dusk sand */
++.mozac-readerview-body.veld-r12-dusk-sand {
++  --veld-reader-ground: #f0e6da;
++  --veld-reader-text: #2b2420;
++  --veld-reader-secondary: #655448;
++  --veld-reader-link: #2f5690;
++  --veld-reader-visited: #7b4870;
++  --veld-reader-site-name: #2f5690;
++  --veld-reader-selection: #548ffc33;
++  --veld-reader-quote-bar: #847b74;
++  --veld-reader-rule: #b5aca2;
++}
++
++/* R12 (Night blue): Navy */
++.mozac-readerview-body.veld-r12-navy {
++  --veld-reader-ground: #10141b;
++  --veld-reader-text: #e6eaf0;
++  --veld-reader-secondary: #9ea7b5;
++  --veld-reader-link: #94b6f2;
++  --veld-reader-visited: #bba4f2;
++  --veld-reader-site-name: #94b6f2;
++  --veld-reader-selection: #548ffc52;
++  --veld-reader-quote-bar: #868a90;
++  --veld-reader-rule: #50545b;
++}
++
++/* R13 (Mono, underlined links): Light */
++.mozac-readerview-body.veld-r13-light {
++  --veld-reader-ground: #f7f7f7;
++  --veld-reader-text: #1a1a1a;
++  --veld-reader-secondary: #5c5c5c;
++  --veld-reader-link: #1a1a1a;
++  --veld-reader-visited: #5c5c5c;
++  --veld-reader-site-name: #1a1a1a;
++  --veld-reader-selection: #548ffc3d;
++  --veld-reader-quote-bar: #7d7d7d;
++  --veld-reader-rule: #b5b5b5;
++  --veld-reader-link-underline: #548ffc;
++  --veld-reader-visited-underline: #548ffc8c;
++}
++
++/* R13 (Mono, underlined links): Dark */
++.mozac-readerview-body.veld-r13-dark {
++  --veld-reader-ground: #141414;
++  --veld-reader-text: #e6e6e6;
++  --veld-reader-secondary: #a3a3a3;
++  --veld-reader-link: #e6e6e6;
++  --veld-reader-visited: #a3a3a3;
++  --veld-reader-site-name: #e6e6e6;
++  --veld-reader-selection: #548ffc52;
++  --veld-reader-quote-bar: #888888;
++  --veld-reader-rule: #535353;
++  --veld-reader-link-underline: #7fa8f8;
++  --veld-reader-visited-underline: #7fa8f88c;
++}
++
++/* Veld: the shared rules of every veld-* scheme. */
++.mozac-readerview-body[class*="veld-"] {
++  background-color: var(--veld-reader-ground);
++  background-image: var(--veld-reader-picture, none);
++  background-position: var(--veld-reader-picture-position, 0 0);
++  background-size: var(--veld-reader-picture-size, auto);
++  background-repeat: no-repeat;
++  background-attachment: fixed;
++  color: var(--veld-reader-text);
++}
++
++.mozac-readerview-body[class*="veld-"] * {
++  color: var(--veld-reader-text);
++}
++
++.mozac-readerview-body[class*="veld-"] > .container > .header > .domain {
++  color: var(--veld-reader-site-name) !important;
++}
++
++.mozac-readerview-body[class*="veld-"] > .container > .header > .domain-border,
++.mozac-readerview-body[class*="veld-"] > .container > hr {
++  border-color: var(--veld-reader-rule);
++}
++
++/* Solid, so the rule shows its own colour (Mozilla's hr is inset and takes the text colour). */
++.mozac-readerview-body[class*="veld-"] > .container > hr {
++  border-style: solid;
++}
++
++.mozac-readerview-body[class*="veld-"] > .container > .header > .credits,
++.mozac-readerview-body[class*="veld-"] > .container > .header > div:last-child,
++.mozac-readerview-body[class*="veld-"] > .container > .header > div:last-child *,
++.mozac-readerview-body[class*="veld-"] > .container > .content .caption,
++.mozac-readerview-body[class*="veld-"] > .container > .content .wp-caption-text,
++.mozac-readerview-body[class*="veld-"] > .container > .content figcaption {
++  color: var(--veld-reader-secondary);
++}
++
++.mozac-readerview-body[class*="veld-"] > .container > .content blockquote {
++  border-left-color: var(--veld-reader-quote-bar) !important;
++}
++
++/* !important: Mozilla's text-decoration shorthand for links is !important and resets the colour. */
++.mozac-readerview-body[class*="veld-"] .mozac-readerview-content a {
++  color: var(--veld-reader-link) !important;
++  text-decoration-color: var(--veld-reader-link-underline, currentcolor) !important;
++}
++
++/* Mozilla's link rule also colours what is inside a pressed link; so does Veld's. */
++.mozac-readerview-body[class*="veld-"] .mozac-readerview-content a:active :not(.mozac-readerview-content a:visited) {
++  color: var(--veld-reader-link) !important;
++}
++
++.mozac-readerview-body[class*="veld-"] .mozac-readerview-content a:visited {
++  color: var(--veld-reader-visited) !important;
++  text-decoration-color: var(--veld-reader-visited-underline, currentcolor) !important;
++}
++
++.mozac-readerview-body[class*="veld-"] ::selection {
++  background-color: var(--veld-reader-selection);
++}
