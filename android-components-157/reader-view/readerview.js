@@ -384,7 +384,176 @@ function getPreparedDocument(id, url) {
   });
 }
 
+/**
+ * Veld (owner 2026-11-20, "5. B"; ADR-0034 amendment 2026-11-20): a video card pressed in Read
+ * in VR shows that video here alone, filling the window, as this page's own content; Veld's VR
+ * player presents this tab as it presents a fullscreen page. Veld asks over this document's own
+ * native port; the element is found by its kind, host and place among the players (Read in VR
+ * reads the same article with the same Readability). Nothing is read but the element's own
+ * intrinsic size, nothing is sent anywhere but the port, and nothing is stored. An audio card
+ * only scrolls its player into view.
+ */
+class VeldVideoView {
+  static get METADATA_WAIT_MS() {
+    return 1500;
+  }
+
+  constructor() {
+    this.media = null;
+    this.id = 0;
+    this.scrollY = 0;
+    this.answered = false;
+    this.timer = 0;
+  }
+
+  static hostOf(element) {
+    let addresses = [element.getAttribute("src") || ""];
+    for (let child of element.children) {
+      if (child.localName === "source") {
+        addresses.push(child.getAttribute("src") || "");
+      }
+    }
+    for (let value of addresses) {
+      if (!value) {
+        continue;
+      }
+      try {
+        let address = new URL(value.trim(), document.baseURI);
+        if (
+          (address.protocol === "https:" || address.protocol === "http:") &&
+          address.hostname
+        ) {
+          return address.hostname.toLowerCase();
+        }
+      } catch (e) {
+        // Not an address.
+      }
+    }
+    return "";
+  }
+
+  find(kind, host, occurrence) {
+    let name = kind === "audio" ? "audio" : "video";
+    let seen = 0;
+    let players = document.querySelectorAll(
+      ".mozac-readerview-content video, .mozac-readerview-content audio"
+    );
+    for (let element of players) {
+      if (element.localName !== name || element.closest("td, th")) {
+        continue;
+      }
+      if (VeldVideoView.hostOf(element) !== host) {
+        continue;
+      }
+      if (seen++ === occurrence) {
+        return element;
+      }
+    }
+    return null;
+  }
+
+  show(port, value) {
+    this.end(null);
+    let id = value && Number.isInteger(value.id) ? value.id : 0;
+    let media = value
+      ? this.find(
+          String(value.kind || ""),
+          String(value.host || ""),
+          Number.isInteger(value.occurrence) ? value.occurrence : -1
+        )
+      : null;
+    if (!media) {
+      port.postMessage({ veldVideoView: "missing", id });
+      return;
+    }
+    if (value.reveal || media.localName !== "video") {
+      media.scrollIntoView({ block: "center", behavior: "instant" });
+      port.postMessage({ veldVideoView: "revealed", id });
+      return;
+    }
+    this.media = media;
+    this.id = id;
+    this.answered = false;
+    this.scrollY = window.scrollY;
+    media.classList.add("veld-video-view-media");
+    document.documentElement.classList.add("veld-video-view");
+    media.preload = "auto";
+    if (media.readyState === 0 && media.networkState !== 2) {
+      media.load();
+    }
+    let answer = () => {
+      if (this.media !== media || this.id !== id || this.answered) {
+        return;
+      }
+      this.answered = true;
+      clearTimeout(this.timer);
+      port.postMessage({
+        veldVideoView: "shown",
+        id,
+        width: media.videoWidth | 0,
+        height: media.videoHeight | 0,
+      });
+    };
+    if (media.readyState >= 1) {
+      answer();
+    } else {
+      media.addEventListener("loadedmetadata", answer, { once: true });
+      this.timer = setTimeout(answer, VeldVideoView.METADATA_WAIT_MS);
+    }
+  }
+
+  play() {
+    if (this.media) {
+      this.media.play().catch(() => {});
+    }
+  }
+
+  end(port) {
+    let media = this.media;
+    let id = this.id;
+    clearTimeout(this.timer);
+    this.media = null;
+    this.answered = false;
+    if (!media) {
+      return;
+    }
+    media.pause();
+    media.classList.remove("veld-video-view-media");
+    document.documentElement.classList.remove("veld-video-view");
+    window.scrollTo({ top: this.scrollY, left: 0, behavior: "instant" });
+    if (port) {
+      port.postMessage({ veldVideoView: "ended", id });
+    }
+  }
+}
+
+/**
+ * Veld (owner 2026-11-22: "couldnt it be hidden if that window HAS TO SHOW and that normal
+ * reader view would just say like 'Loading Immersive Reader' or something, rather than display
+ * the article"): while Veld's Immersive Reader is on its way from this window, open, or on its
+ * way back, this page shows the words Veld sends (or only its own ground) instead of the article.
+ * The article stays laid out underneath, untouched, and shows again when Veld ends the view.
+ * Veld asks over this document's own native port and the answer goes back only there; nothing is
+ * read, fetched or stored.
+ */
+class VeldLoadingView {
+  set(port, value) {
+    let id = value && Number.isInteger(value.id) ? value.id : 0;
+    let on = !!(value && value.on);
+    if (on) {
+      document.body.setAttribute("data-veld-words", String(value.words || ""));
+      document.documentElement.classList.add("veld-loading-view");
+    } else {
+      document.documentElement.classList.remove("veld-loading-view");
+      document.body.removeAttribute("data-veld-words");
+    }
+    port.postMessage({ veldLoadingView: on ? "on" : "off", id });
+  }
+}
+
 let readerView = new ReaderView();
+let veldVideoView = new VeldVideoView();
+let veldLoadingView = new VeldLoadingView();
 connectNativePort();
 prepareBody();
 
@@ -444,6 +613,20 @@ function connectNativePort() {
           activeUrl: articleUrl,
           readerable: true,
         });
+        break;
+      // Veld (ADR-0034 amendment 2026-11-20): the full-window video view.
+      case "veldVideoView":
+        veldVideoView.show(port, message.value);
+        break;
+      case "veldVideoViewPlay":
+        veldVideoView.play();
+        break;
+      case "veldVideoViewEnd":
+        veldVideoView.end(port);
+        break;
+      // Veld (owner 2026-11-22): the loading view while Immersive Reader is on its way or open.
+      case "veldLoadingView":
+        veldLoadingView.set(port, message.value);
         break;
       default:
         console.error(`Received invalid action ${message.action}`);

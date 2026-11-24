@@ -1,11 +1,11 @@
-# SHA-256 of every file in android-components-157/ (Veld's Reader View copy reader-view@veld 1.0 and its three patches); check with: sha256sum -c SHA256SUMS
-cce5a413f361d07012a6e0ed2a1a17728a69247af024d519964a2b4b205c01dc  patches/reader-view/manifest.json.patch
-1f325c082884c7032980fec5347d0969acee26d21a9c48e71aa294fd932ed415  patches/reader-view/readerview.css.patch
-5831638e21f8eeecd813e47f80e307c1d9e23afb8b5d0821662fe1b2ddac1541  patches/reader-view/readerview.js.patch
-ca6a8b20a4c6942561cbb941334cdd292b48cff10050eddd39840d2173eb6b49  reader-view/manifest.json
+# SHA-256 of every file in android-components-157/ (Veld's Reader View copy reader-view@veld 1.4 and its three patches); check with: sha256sum -c SHA256SUMS
+8df9c2facc9280115895da2848d73720339141ffccfc803def98e3081a1d3e97  patches/reader-view/manifest.json.patch
+f494ec588ef580c89b65532db08a1c14ed15b57d35742ec7883008b528a7b38e  patches/reader-view/readerview.css.patch
+692955fd4b778125a57c30a34551d19fe1f7de8b22b984606821a3abd9bcc6a2  patches/reader-view/readerview.js.patch
+80954d3cee9da75fa3c7e1c515c086323187db6d956e7143d5543dc8d5c6fe2f  reader-view/manifest.json
 20b722f3bafbfcb971d8813fb7accde15e021f6a145d7e3be76bd82390019882  reader-view/readability/JSDOMParser-0.4.2.js
 002650304705dbaa74df348d6889faf79b7835a6cb93fbdd2bb1decc7da11c6e  reader-view/readerview-background.js
 15b9fbada0301e0adce380a99dbe0b82e2c76fa69c4711a0394aa7d267843510  reader-view/readerview-content.js
-e4ec72972139cdc3e57ae6c0061e8900cc9814ae233ae829b2da18dbdb6d9479  reader-view/readerview.css
+3c86b63ab0993db48d46c2f2b1df45da84b7aa9b1ed28b339e18da495f90887d  reader-view/readerview.css
 d4a16431cbc1bd5f69f8f5bd89efdbb76c26f600eae3f037de6f2dfdbddeb8c4  reader-view/readerview.html
-c2af52b0de193605e1a8b49f3fbde44c8657e8ae17892b155cec6fd6cf03cdf4  reader-view/readerview.js
+cc41a272c22389dec58360aaca19a66862d24646dfbb32e75dd6ac8549ced1a8  reader-view/readerview.js

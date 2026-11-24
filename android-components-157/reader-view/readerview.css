@@ -340,17 +340,17 @@
   --veld-reader-rule: #bdbdbd;
 }
 
-/* R1 (Mozilla, tidied): Sepia */
+/* R1 (Veld 1.3, owner 2026-11-22, "b soft clay": ground #e0c9b4, text #59443b; 1.2, owner 2026-11-20: warmer, dimmer ground): Sepia */
 .mozac-readerview-body.veld-r1-sepia {
-  --veld-reader-ground: #f4ecd8;
-  --veld-reader-text: #5b4636;
-  --veld-reader-secondary: #6f5a47;
-  --veld-reader-link: #2f5a86;
-  --veld-reader-visited: #764b6e;
-  --veld-reader-site-name: #2f5a86;
+  --veld-reader-ground: #e0c9b4;
+  --veld-reader-text: #59443b;
+  --veld-reader-secondary: #5a4532;
+  --veld-reader-link: #234b78;
+  --veld-reader-visited: #68405f;
+  --veld-reader-site-name: #234b78;
   --veld-reader-selection: #548ffc38;
-  --veld-reader-quote-bar: #a0917f;
-  --veld-reader-rule: #c6baa7;
+  --veld-reader-quote-bar: #7a6a56;
+  --veld-reader-rule: #a8956f;
 }
 
 /* R1 (Mozilla, tidied): Dark */
@@ -828,4 +828,69 @@
 
 .mozac-readerview-body[class*="veld-"] ::selection {
   background-color: var(--veld-reader-selection);
+}
+
+/* Veld (owner 2026-11-20, "5. B"; ADR-0034 amendment 2026-11-20): the full-window video view
+ * readerview.js shows for a video card pressed in Read in VR. Only that video shows, filling the
+ * window on black, as this page's own content; Veld's VR player presents it. The article stays
+ * where it was underneath and shows again when the view ends. */
+html.veld-video-view,
+html.veld-video-view > body {
+  overflow: hidden !important;
+  background: #000000 !important;
+  transition: none !important;
+}
+
+html.veld-video-view > body * {
+  visibility: hidden !important;
+}
+
+html.veld-video-view .mozac-readerview-content video.veld-video-view-media {
+  visibility: visible !important;
+  display: block !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  object-fit: contain !important;
+  background: #000000 !important;
+  z-index: 2147483647 !important;
+}
+
+/* Veld (owner 2026-11-22: "couldnt it be hidden if that window HAS TO SHOW and that normal reader
+ * view would just say like 'Loading Immersive Reader' or something, rather than display the
+ * article"): the loading view readerview.js shows while Veld's Immersive Reader is on its way from
+ * this window, open, or on its way back. The page keeps its scheme's ground and shows only Veld's
+ * words, centred, in the scheme's secondary text colour; the article stays laid out underneath,
+ * hidden, and shows again when the view ends. The video view takes precedence while it shows. */
+html.veld-loading-view > body > * {
+  visibility: hidden !important;
+}
+
+html.veld-loading-view:not(.veld-video-view) > body::before {
+  content: attr(data-veld-words);
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+  font-family: sans-serif;
+  font-size: 1.33em;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--veld-reader-secondary);
 }
