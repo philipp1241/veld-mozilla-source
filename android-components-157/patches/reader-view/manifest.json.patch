@@ -11,7 +11,7 @@
 -  "name": "Mozilla Android Components - ReaderView",
 -  "version": "157.0.20260924.84938",
 +  "name": "Veld Reader View",
-+  "version": "1.4",
++  "version": "1.5",
    "content_scripts": [
      {
        "matches": ["<all_urls>"],

@@ -48,7 +48,16 @@
  class ReaderView {
    static get MIN_FONT_SIZE() {
      return 1;
-@@ -147,11 +188,10 @@ class ReaderView {
+@@ -44,6 +85,8 @@ class ReaderView {
+     url,
+     options = { fontSize: 4, fontType: "sans-serif", colorScheme: "light" }
+   ) {
++    // Veld (owner 2026-11-25): only the opened article of a page that holds several (veldKeepOpenedArticle).
++    veldKeepOpenedArticle(doc, url);
+     let result = new Readability(doc, {
+       classesToPreserve: preservedClasses,
+     }).parse();
+@@ -147,11 +190,10 @@ class ReaderView {
    /**
     * Sets the color scheme.
     *
@@ -62,7 +71,7 @@
        console.error(`Invalid color scheme specified: ${colorScheme}`);
        return;
      }
-@@ -344,7 +384,176 @@ function getPreparedDocument(id, url) {
+@@ -344,7 +386,338 @@ function getPreparedDocument(id, url) {
    });
  }
  
@@ -233,13 +242,175 @@
 +  }
 +}
 +
++// ---- Veld: the opened article (owner 2026-11-25) ----
++/**
++ * Veld (owner 2026-11-25, an article in Reader View: "it shows the right header but the wrong article"; "yes go ahead,
++ * test first"): a page that appends further articles below the one opened (an endless article feed) holds several
++ * articles. Readability reads the highest-scoring part of the page, often a longer appended article, while its title
++ * comes from the page's own metadata. veldKeepOpenedArticle runs on the copy of the page Readability is about to read
++ * (never the live page) and removes the other articles, only when one of them is positively the page's own:
++ * - the articles: the outermost article elements; when they decide nothing (a feed without them, say), each h1 with
++ *   the largest part of the page around it that holds no other h1. A part is an article with at least
++ *   MIN_ARTICLE_TEXT characters in its paragraphs (Readability's own minimum for an article), and only two or more
++ *   articles count;
++ * - the page's own: in Readability's order of the title metadata (the dc, dcterm, og, weibo, title and twitter
++ *   titles, then the document's title), the first title that an article's headline repeats, when only one article's
++ *   does (its words are the title's, by Readability's measure for a heading that repeats the title, and they make up
++ *   at least 30 per cent of the title); else the one article whose element or headline link names the page's own
++ *   address (its canonical link, else its og:url);
++ * - nothing found, or one article: the copy stays as it is, so a page with one article reads exactly as before.
++ * Answers how many articles it removed. Nothing is fetched, kept or sent.
++ */
++function veldKeepOpenedArticle(doc, base) {
++  const MIN_ARTICLE_TEXT = 500;
++  const MAX_ARTICLES = 64;
++  const TITLES = ["dc:title", "dcterm:title", "og:title", "weibo:article:title", "weibo:webpage:title", "title",
++    "twitter:title"];
++  const all = (root, name) => Array.from(root.getElementsByTagName(name));
++  const first = (root, names) => {
++    for (const name of names) {
++      const found = root.getElementsByTagName(name)[0];
++      if (found) {
++        return found;
++      }
++    }
++    return null;
++  };
++  const words = text => String(text || "").toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
++  // The share of [these] words' characters that [those] words hold too.
++  const covered = (these, those) => {
++    const held = new Set(those);
++    const length = these.join(" ").length;
++    return length > 0 ? 1 - these.filter(word => !held.has(word)).join(" ").length / length : 0;
++  };
++  const repeats = (headline, title) => {
++    const heading = words(headline);
++    const page = words(title);
++    return covered(heading, page) > 0.75 && covered(page, heading) >= 0.3;
++  };
++  const paragraphText = node =>
++    all(node, "p").reduce((sum, p) => sum + String(p.textContent || "").replace(/\s+/g, " ").trim().length, 0);
++  const address = value => {
++    const text = String(value || "").trim();
++    if (!/^(https?:)?\//i.test(text)) {
++      return "";
++    }
++    try {
++      const url = new URL(text, base);
++      const path = url.pathname.replace(/\/+$/, "");
++      return /^https?:$/.test(url.protocol) && path ? url.host.toLowerCase() + path : "";
++    } catch (e) {
++      return "";
++    }
++  };
++  const within = (node, name) => {
++    for (let up = node.parentNode; up; up = up.parentNode) {
++      if (up.localName === name) {
++        return true;
++      }
++    }
++    return false;
++  };
++  const articleParts = () =>
++    all(doc, "article")
++      .filter(node => !within(node, "article"))
++      .map(node => ({ node, heading: first(node, ["h1", "h2", "h3"]) }));
++  const headlineParts = body => {
++    const headings = all(body, "h1");
++    if (headings.length > MAX_ARTICLES) {
++      return [];
++    }
++    const holders = new Map();
++    for (const heading of headings) {
++      for (let up = heading; up && up !== body; up = up.parentNode) {
++        holders.set(up, (holders.get(up) || 0) + 1);
++      }
++    }
++    return headings.map(heading => {
++      let node = heading;
++      while (node.parentNode && node.parentNode !== body && holders.get(node.parentNode) === 1) {
++        node = node.parentNode;
++      }
++      return { node, heading };
++    });
++  };
++  const named = part => {
++    const values = Array.from(part.node.attributes || [], attribute => attribute.value);
++    let link = part.heading && first(part.heading, ["a"]);
++    for (let up = part.heading; !link && up && up !== part.node; up = up.parentNode) {
++      if (up.localName === "a") {
++        link = up;
++      }
++    }
++    if (link) {
++      values.push(link.getAttribute("href"));
++    }
++    return values.map(address).filter(Boolean);
++  };
++  try {
++    const body = doc && typeof doc.getElementsByTagName === "function" ? doc.getElementsByTagName("body")[0] : null;
++    if (!body) {
++      return 0;
++    }
++    const metadata = new Map();
++    for (const meta of all(doc, "meta")) {
++      const name = String(meta.getAttribute("property") || meta.getAttribute("name") || "")
++        .trim()
++        .toLowerCase()
++        .replace(/\./g, ":");
++      const content = meta.getAttribute("content");
++      if (content && (TITLES.includes(name) || name === "og:url") && !metadata.has(name)) {
++        metadata.set(name, content);
++      }
++    }
++    const canonical = all(doc, "link")
++      .filter(link => /(^|\s)canonical(\s|$)/i.test(link.getAttribute("rel") || ""))
++      .map(link => address(link.getAttribute("href")))
++      .filter(Boolean);
++    const own = new Set(canonical.length > 0 ? canonical : [address(metadata.get("og:url"))].filter(Boolean));
++    const titles = TITLES.filter(name => metadata.has(name)).map(name => metadata.get(name));
++    titles.push(doc.title || "");
++    for (const parts of [articleParts(), headlineParts(body)]) {
++      const articles = parts.filter(part => paragraphText(part.node) >= MIN_ARTICLE_TEXT);
++      if (articles.length < 2 || articles.length > MAX_ARTICLES) {
++        continue;
++      }
++      let opened = null;
++      for (const title of titles) {
++        const repeating = articles.filter(part => part.heading && repeats(part.heading.textContent, title));
++        if (repeating.length > 0) {
++          opened = repeating.length === 1 ? repeating[0] : null;
++          break;
++        }
++      }
++      if (!opened && own.size > 0) {
++        const naming = articles.filter(part => named(part).some(value => own.has(value)));
++        opened = naming.length === 1 ? naming[0] : null;
++      }
++      if (!opened) {
++        continue;
++      }
++      for (const part of articles) {
++        if (part !== opened && part.node.parentNode) {
++          part.node.parentNode.removeChild(part.node);
++        }
++      }
++      return articles.length - 1;
++    }
++  } catch (e) {
++    // The copy stays as it is.
++  }
++  return 0;
++}
++// ---- end of Veld: the opened article ----
++
  let readerView = new ReaderView();
 +let veldVideoView = new VeldVideoView();
 +let veldLoadingView = new VeldLoadingView();
  connectNativePort();
  prepareBody();
  
-@@ -405,6 +614,20 @@ function connectNativePort() {
+@@ -405,6 +778,20 @@ function connectNativePort() {
            readerable: true,
          });
          break;

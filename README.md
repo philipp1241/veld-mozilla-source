@@ -57,20 +57,20 @@ file, so the result can be checked byte for byte.
 
 Veld ships its own copy of Mozilla's Reader View extension (the `readerview` built-in of
 the Android Components module `feature-readerview` 157.0) under the id `reader-view@veld`,
-version 1.4, to add its own colour schemes, a full-window video view and a loading view for Veld's Immersive Reader. The seven MPL-2.0 files of that copy are in
+version 1.5, to add its own colour schemes, a full-window video view and a loading view for Veld's Immersive Reader, and to read only the opened article of a page that holds several. The seven MPL-2.0 files of that copy are in
 `android-components-157/reader-view/`, exactly as Veld ships them:
 
 | File | Change from Mozilla's file |
 |---|---|
-| `manifest.json` | modified: extension id, name and version (1.4) only |
+| `manifest.json` | modified: extension id, name and version (1.5) only |
 | `readerview.css` | modified: Mozilla's 319 lines unchanged, Veld's colour schemes appended, then the rules of the full-window video view, then the two rules of the loading view |
-| `readerview.js` | modified: the list of accepted colour scheme names and its check, the video view (a `VeldVideoView` class and three cases in the message switch) and the loading view (a `VeldLoadingView` class and one case in the same switch) |
+| `readerview.js` | modified: the list of accepted colour scheme names and its check, the video view (a `VeldVideoView` class and three cases in the message switch) the loading view (a `VeldLoadingView` class and one case in the same switch) and the article choice (a `veldKeepOpenedArticle` function and its one call at the start of `ReaderView.show`) |
 | `readerview.html` | unmodified |
 | `readerview-content.js` | unmodified |
 | `readerview-background.js` | unmodified |
 | `readability/JSDOMParser-0.4.2.js` | unmodified |
 
-Version 1.4 adds the loading view ("Loading Immersive Reader" shown instead of the article while Read in VR opens, is open or returns): `readerview.js` gains a `VeldLoadingView` class and one case in the message switch, `readerview.css` gains two rules, and `manifest.json` raises the version; the other four files are unchanged. Version 1.3 only changes the Sepia scheme (`veld-r1-sepia`) to a soft clay ground (`#e0c9b4`) and text colour (`#59443b`) in `readerview.css` and raises the version in `manifest.json`. Version 1.2 changed the same two files only, for a warmer, darker Sepia ground. Version 1.1 changes the same three files compared with version 1.0: `readerview.js` gains the
+Version 1.5 adds the article choice: on a page that holds several articles (for example a page that appends the next articles below the one opened), the copy of the page Readability reads keeps only the article that is positively the page's own (its headline repeats the page's title metadata, or it names the page's canonical address) and otherwise stays as it is; `readerview.js` gains the `veldKeepOpenedArticle` function and one call in `ReaderView.show`, and `manifest.json` raises the version; the other five files are unchanged. Version 1.4 adds the loading view ("Loading Immersive Reader" shown instead of the article while Read in VR opens, is open or returns): `readerview.js` gains a `VeldLoadingView` class and one case in the message switch, `readerview.css` gains two rules, and `manifest.json` raises the version; the other four files are unchanged. Version 1.3 only changes the Sepia scheme (`veld-r1-sepia`) to a soft clay ground (`#e0c9b4`) and text colour (`#59443b`) in `readerview.css` and raises the version in `manifest.json`. Version 1.2 changed the same two files only, for a warmer, darker Sepia ground. Version 1.1 changes the same three files compared with version 1.0: `readerview.js` gains the
 video view (it finds a video of the article, shows it alone filling the window, plays it and
 ends the view again), `readerview.css` gains the rules of that view, and `manifest.json` only
 raises the version. The other four files are unchanged.
